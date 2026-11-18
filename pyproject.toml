@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "cornice-apispec"
+version = "0.1.0"
+description = "OpenAPI spec generation for Cornice/Pyramid with Marshmallow and OneOfSchema support"
+authors = ["Robbin"]
+license = "BSD-3-Clause"
+readme = "README.md"
+packages = [{include = "cornice_apispec", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyramid-apispec = ">=0.4"
+cornice = ">=6.0.0"
+marshmallow = ">=3.13.0,<4.0.0"
+marshmallow-oneofschema = ">=3.0.1,<4.0.0"
+apispec = ">=6.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.0"
+ruff = ">=0.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
