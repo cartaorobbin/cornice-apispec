@@ -6,6 +6,20 @@ authors = ["Robbin"]
 license = "BSD-3-Clause"
 readme = "README.md"
 packages = [{include = "cornice_apispec", from = "src"}]
+homepage = "https://github.com/cartaorobbin/cornice-apispec"
+repository = "https://github.com/cartaorobbin/cornice-apispec"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Pyramid",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+keywords = ["pyramid", "openapi", "apispec", "marshmallow", "cornice", "swagger"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
