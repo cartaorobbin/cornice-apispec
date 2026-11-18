@@ -27,6 +27,15 @@ from cornice_apispec import get_spec
 config.include("cornice_apispec")
 ```
 
+## Development
+
+Reopen this repository in the dev container (Python 3.12, Poetry). After the container is created, dependencies are installed with `poetry install`.
+
+```bash
+poetry run pytest
+poetry run ruff check src/
+```
+
 ## License
 
 BSD-3-Clause
