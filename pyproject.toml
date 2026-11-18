@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cornice-apispec"
-version = "0.1.0"
+version = "0.1.1"
 description = "OpenAPI spec generation for Cornice/Pyramid with Marshmallow and OneOfSchema support"
 authors = ["Robbin"]
 license = "BSD-3-Clause"
