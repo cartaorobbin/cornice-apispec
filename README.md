@@ -1,6 +1,10 @@
 # cornice-apispec
 
+[![Docs](https://github.com/cartaorobbin/cornice-apispec/actions/workflows/docs.yml/badge.svg)](https://cartaorobbin.github.io/cornice-apispec/)
+
 OpenAPI spec generation for Cornice/Pyramid with Marshmallow and OneOfSchema support.
+
+Documentation: <https://cartaorobbin.github.io/cornice-apispec/>
 
 Forked from [pycornmarsh](https://github.com/niccolofanton/pycornmarsh) with a fix for `OneOfSchema` component name collisions when multiple API versions define schemas with the same class name.
 
@@ -27,6 +31,8 @@ from cornice_apispec import get_spec
 config.include("cornice_apispec")
 ```
 
+See [Getting started](https://cartaorobbin.github.io/cornice-apispec/getting-started/) for the per-version spec module and the `pcm_*` view predicates.
+
 ## Development
 
 Reopen this repository in the dev container (Python 3.12, Poetry). After the container is created, dependencies are installed with `poetry install`.
@@ -34,6 +40,7 @@ Reopen this repository in the dev container (Python 3.12, Poetry). After the con
 ```bash
 poetry run pytest
 poetry run ruff check src/
+poetry run mkdocs serve
 ```
 
 ## License
