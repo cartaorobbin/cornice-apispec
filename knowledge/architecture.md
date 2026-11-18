@@ -11,6 +11,8 @@ src/cornice_apispec/
 ├── generator.py       # AutoDoc builds one OpenAPI operation from a view and a Cornice service
 └── marshmallow.py     # MarshmallowPlugin and OneofOpenAPIConverter
 tests/
+├── conftest.py          # Cornice service, query/header schemas, Configurator with predicates
+├── test_generator.py    # AutoDoc deprecation output, pcm_deprecated registration
 └── test_marshmallow.py  # OneOfSchema component names, including v1/v3 collisions
 docs/                    # MkDocs pages (see knowledge/documentation.md)
 mkdocs.yml               # MkDocs Material + mkdocstrings config
@@ -44,6 +46,8 @@ The library is a Pyramid add-on. `includeme` includes `pyramid_apispec.views`, r
 
 `get_spec` builds an OpenAPI 3.0.2 document with `MarshmallowPlugin`. It walks introspected views, keeps those whose `pcm_show` matches the URL version, and skips HEAD and OPTIONS. Path parameters come from `{placeholder}` segments in the Cornice route. The server URL is the current request's scheme and host.
 
+Deprecation comes from two sources, because Cornice has none. `pcm_deprecated=True` on a view sets `deprecated: true` on the operation (`AutoDoc._add_deprecated`). Marshmallow field `metadata={"deprecated": True}` sets `deprecated: true` on query and header parameters (`AutoDoc._build_parameter`). apispec's Marshmallow plugin already copies the same metadata onto body and response component properties. A falsy value omits the key.
+
 `OneofOpenAPIConverter` is the reason this fork exists. When two `OneOfSchema` members resolve to the same component name, it prefixes the name with `V{n}` from a `vN` segment in the schema's module path. `myapp.views.api.v3.schemas.PartSchema` becomes `V3PartSchema`. If the module has no `vN` segment, it uses the parent package name capitalized.
 
 Dependencies are managed with Poetry. Runtime Python is `^3.11`. Local development and the dev container use 3.12. Dev dependencies are pytest, ruff, mkdocs-material, and mkdocstrings. Ruff excludes the managed `.cursor/` and `.claude/` folders.
@@ -70,5 +74,8 @@ includeme
 - Component qualification runs only when the resolved name is already in `spec.components.schemas`. The first schema keeps the bare name. Later collisions get the version prefix.
 - `get_spec` swallows `DuplicateComponentNameError` when registering `pcm_request` and `pcm_responses` schemas. Qualification of `OneOfSchema` members happens inside `OneofOpenAPIConverter.schema2jsonschema`.
 - `get_schema_name` appends a 5-character MD5 prefix when a schema instance sets `exclude`, so two instances of the same class with different exclusions do not share a component name.
+- Cornice 6.x `Service` and its view decorators have no `deprecated` or `sunset` option. Pyramid has none either. Use `pcm_deprecated` and field metadata.
+- Query and header parameters are built by hand in `AutoDoc._build_parameter`, not by apispec. Any field metadata that should reach a parameter (such as `deprecated`) must be copied there explicitly.
+- Pyramid registers its own default views, so `introspector.get_category("views")` returns more than the app's views. Tests use `introspector.related(route)` to get one route's views.
 - The wrapper around an introspected view is spelled `InstropectedView`.
 - Collision tests assign `__module__` on a dynamically created `PartSchema` to simulate a v3 module. Qualification depends on that module path, not on the class name.
