@@ -13,6 +13,7 @@ so they never change routing. They only attach OpenAPI metadata to the view, whi
 | `pcm_summary` | string | `summary` |
 | `pcm_description` | string | `description` |
 | `pcm_security` | security scheme name | `security: [{name: []}]` |
+| `pcm_deprecated` | `bool` | `deprecated: true` |
 
 ## `pcm_show`
 
@@ -60,6 +61,30 @@ Name a scheme that you pass to `get_spec(security_scheme=...)`:
 @users.delete(pcm_show="v1", pcm_security="bearerAuth")
 def delete_user(request): ...
 ```
+
+## Deprecation
+
+Cornice has no deprecation concept, so you mark deprecated parts of the API yourself.
+
+To deprecate an operation, set `pcm_deprecated=True`. The operation gets
+`deprecated: true`. The key is left out when the value is falsy.
+
+```python
+@users.get(pcm_show="v1", pcm_deprecated=True)
+def list_users_legacy(request): ...
+```
+
+To deprecate a single field, set `deprecated` in the field metadata:
+
+```python
+class ListUsersQuery(Schema):
+    page = fields.Integer()
+    offset = fields.Integer(metadata={"deprecated": True})
+```
+
+A field in a `"querystring"` or `"headers"` schema becomes a parameter with
+`deprecated: true`. A field in a `"body"` or response schema becomes a component
+property with `deprecated: true`.
 
 ## Component names
 
