@@ -1,5 +1,5 @@
-import inspect
 import hashlib
+import inspect
 
 DEFAULT_CONTENT_TYPE = "application/json"
 
@@ -14,16 +14,14 @@ def get_schema_name(schema):
     if "exclude" in schema.__dict__ and schema.exclude:
         key = "{}".format(list(schema.__dict__.get("exclude"))).encode("utf-8")
 
-        return "{}-{}".format(
-            schema.__class__.__name__, hashlib.md5(key).hexdigest()[:5]
-        )
+        return f"{schema.__class__.__name__}-{hashlib.md5(key).hexdigest()[:5]}"
     return schema.__class__.__name__
 
 
 VALIDATOR_FOR_OPEN_API = {"querystring": "query", "headers": "header", "path": "path"}
 
 
-class AutoDoc(object):
+class AutoDoc:
     def __init__(self, method, introspectable_view, cornice_service):
         self.method = method
         self.view = introspectable_view
@@ -71,7 +69,7 @@ class AutoDoc(object):
                     "in": "path",
                     "required": True,
                     "schema": self.get_type_from_field("String"),
-                    "description": "{} parameter".format(parameter_name),
+                    "description": f"{parameter_name} parameter",
                 }
             ]
         self._add_parameter(parameter_list)
@@ -101,12 +99,12 @@ class AutoDoc(object):
                         schema_body = {
                             "type": "array",
                             "items": {
-                                "$ref": "#/components/schemas/{}".format(schema_name)
+                                "$ref": f"#/components/schemas/{schema_name}"
                             },
                         }
                     else:
                         schema_body = {
-                            "$ref": "#/components/schemas/{}".format(schema_name)
+                            "$ref": f"#/components/schemas/{schema_name}"
                         }
 
                     status_code_dict = {
@@ -160,9 +158,7 @@ class AutoDoc(object):
                 "content": {
                     self.content_type: {
                         "schema": {
-                            "$ref": "#/components/schemas/{}".format(
-                                get_schema_name(body_schema)
-                            )
+                            "$ref": f"#/components/schemas/{get_schema_name(body_schema)}"
                         }
                     }
                 }

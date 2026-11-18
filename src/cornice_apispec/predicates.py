@@ -1,13 +1,13 @@
 import sys
 
 __all__ = [
-    "PCMResponseSchemasPredicate",
-    "PCMRequestSchemasPredicate",
-    "PCMTagsPredicate",
-    "PCMSummaryPredicate",
     "PCMDescriptionPredicate",
+    "PCMRequestSchemasPredicate",
+    "PCMResponseSchemasPredicate",
     "PCMSecurityPredicate",
     "PCMShowInPredicate",
+    "PCMSummaryPredicate",
+    "PCMTagsPredicate",
 ]
 
 
@@ -18,7 +18,7 @@ class _BasePCMSchemasPredicate:
         self.val = val
 
     def text(self):
-        return "{} = {}".format(self.PRED_ID, self.val)
+        return f"{self.PRED_ID} = {self.val}"
 
     phash = text
 

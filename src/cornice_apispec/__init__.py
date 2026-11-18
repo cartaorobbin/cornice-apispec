@@ -1,13 +1,11 @@
-import re
 import importlib
+import re
 
 from apispec import APISpec
 from apispec.exceptions import DuplicateComponentNameError
 
-from .generator import get_schema_name, AutoDoc
-
+from .generator import AutoDoc, get_schema_name
 from .marshmallow import MarshmallowPlugin
-
 from .predicates import register as predicates_register
 
 
@@ -84,19 +82,19 @@ def get_spec(request, title, version, description=None, security_scheme=None):
         )
 
         if intro.pcm_request:
-            for _, v in intro.pcm_request.items():
+            for v in intro.pcm_request.values():
                 try:
                     name_ = get_schema_name(v)
-                    if name_ not in spec.components.schemas.keys():
+                    if name_ not in spec.components.schemas:
                         spec.components.schema(name_, schema=v)
                 except DuplicateComponentNameError:
                     pass
 
         if intro.pcm_responses:
-            for _, v in intro.pcm_responses.items():
+            for v in intro.pcm_responses.values():
                 try:
                     name_ = get_schema_name(v)
-                    if name_ not in spec.components.schemas.keys():
+                    if name_ not in spec.components.schemas:
                         spec.components.schema(name_, schema=v)
                 except DuplicateComponentNameError:
                     pass
@@ -119,7 +117,7 @@ def get_spec(request, title, version, description=None, security_scheme=None):
         openapi_spec["info"].update({"description": description})
 
     scheme = request.scheme  # Or force to https
-    main_server_url = "{}://{}".format(scheme, request.host)
+    main_server_url = f"{scheme}://{request.host}"
     openapi_spec.update({"servers": [{"url": main_server_url}]})
 
     return openapi_spec
