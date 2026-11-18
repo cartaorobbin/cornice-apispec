@@ -84,6 +84,10 @@ class AutoDoc:
         return self.view.get("pcm_security", None)
 
     @property
+    def deprecated(self) -> bool:
+        return bool(self.view.get("pcm_deprecated", False))
+
+    @property
     def response_schemas(self):
         return self.view.get("pcm_responses", [])
 
@@ -144,23 +148,28 @@ class AutoDoc:
             found_parameter_list.append(parameter)
         self.view_operations[self.method.lower()].update({"parameters": found_parameter_list})
 
-    def _generate_parameters(self):
-        def _observed_name(key):
-            field = schema._declared_fields[key]
-            return getattr(field, "data_key", key) or key
+    def _build_parameter(
+        self, schema: type[Schema] | Schema, key: str, location: str
+    ) -> dict[str, Any]:
+        field = schema._declared_fields[key]
+        parameter = {
+            "name": getattr(field, "data_key", key) or key,
+            "in": VALIDATOR_FOR_OPEN_API.get(location, location),
+            "required": field.required,
+            "schema": self.get_type_from_field(field),
+            "description": schema.__doc__ or "",
+        }
+        if field.metadata.get("deprecated"):
+            parameter["deprecated"] = True
+        return parameter
 
+    def _generate_parameters(self):
         parameter_list = []
         for parameter_in in ["querystring", "headers"]:
             schema = self.find_schema_for(parameter_in)
             if schema:
                 parameter_list += [
-                    {
-                        "name": _observed_name(key),
-                        "in": VALIDATOR_FOR_OPEN_API.get(parameter_in, parameter_in),
-                        "required": schema._declared_fields[key].required,
-                        "schema": self.get_type_from_field(schema._declared_fields[key]),
-                        "description": schema.__doc__ or "",
-                    }
+                    self._build_parameter(schema, key, parameter_in)
                     for key in schema._declared_fields
                 ]
         if parameter_list:
@@ -193,11 +202,16 @@ class AutoDoc:
         if self.security:
             self.view_operations[self.method.lower()].update({"security": [{self.security: []}]})
 
+    def _add_deprecated(self) -> None:
+        if self.deprecated:
+            self.view_operations[self.method.lower()].update({"deprecated": True})
+
     def to_dict(self) -> dict[str, dict[str, Any]]:
         """Return the operation keyed by lowercase method, for `APISpec.path`."""
         self._add_tags()
         self._add_summary()
         self._add_description()
+        self._add_deprecated()
         self._add_security()
         self._generate_request_body()
         self._generate_parameters()

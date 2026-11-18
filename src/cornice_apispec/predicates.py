@@ -1,6 +1,7 @@
 import sys
 
 __all__ = [
+    "PCMDeprecatedPredicate",
     "PCMDescriptionPredicate",
     "PCMRequestSchemasPredicate",
     "PCMResponseSchemasPredicate",
@@ -52,6 +53,10 @@ class PCMSecurityPredicate(_BasePCMSchemasPredicate):
 
 class PCMShowInPredicate(_BasePCMSchemasPredicate):
     PRED_ID = "pcm_show"
+
+
+class PCMDeprecatedPredicate(_BasePCMSchemasPredicate):
+    PRED_ID = "pcm_deprecated"
 
 
 def register(config):
