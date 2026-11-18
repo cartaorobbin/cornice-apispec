@@ -38,8 +38,7 @@ Unknown field types are documented as strings.
     pcm_request={"body": CreateUserSchema, "querystring": DryRunSchema},
     pcm_responses={"201": UserSchema, "400": "Invalid payload"},
 )
-def create_user(request):
-    ...
+def create_user(request): ...
 ```
 
 ## `pcm_responses`
@@ -59,8 +58,7 @@ Name a scheme that you pass to `get_spec(security_scheme=...)`:
 
 ```python
 @users.delete(pcm_show="v1", pcm_security="bearerAuth")
-def delete_user(request):
-    ...
+def delete_user(request): ...
 ```
 
 ## Component names

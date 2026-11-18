@@ -1,13 +1,15 @@
+from typing import ClassVar
+
 import marshmallow as ma
 from apispec import APISpec
 from marshmallow_oneofschema import OneOfSchema
 
 from cornice_apispec.marshmallow import MarshmallowPlugin, OneofOpenAPIConverter
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 class CatSchema(ma.Schema):
     name = ma.fields.String()
@@ -21,12 +23,13 @@ class DogSchema(ma.Schema):
 
 class PetSchema(OneOfSchema):
     type_field = "pet_type"
-    type_schemas = {"cat": CatSchema, "dog": DogSchema}
+    type_schemas: ClassVar[dict[str, type[ma.Schema]]] = {"cat": CatSchema, "dog": DogSchema}
 
 
 # Schemas that collide on resolved name ("Part")
 class PartSchema(ma.Schema):
     """V1 PartSchema — resolves to 'Part'."""
+
     part_id = ma.fields.Integer()
 
 
@@ -38,7 +41,7 @@ _V3PartSchema.__qualname__ = "PartSchema"
 
 class CollisionOneOf(OneOfSchema):
     type_field = "kind"
-    type_schemas = {"v3_part": _V3PartSchema}
+    type_schemas: ClassVar[dict[str, type[ma.Schema]]] = {"v3_part": _V3PartSchema}
 
 
 def _make_spec(**kw):
@@ -54,6 +57,7 @@ def _make_spec(**kw):
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestQualifyName:
     def test_extracts_version_from_module(self):

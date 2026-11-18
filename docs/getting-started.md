@@ -81,8 +81,7 @@ users = Service(name="users", path="/v1/users", description="Users")
     pcm_summary="List users",
     pcm_responses={"200": UserSchema(many=True)},
 )
-def list_users(request):
-    ...
+def list_users(request): ...
 ```
 
 Open `/v1/openapi.json` for the generated document, or `/v1/api-explorer` to browse it.
