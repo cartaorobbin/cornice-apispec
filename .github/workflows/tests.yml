@@ -25,3 +25,6 @@ jobs:
 
       - name: Lint
         run: poetry run ruff check src/
+
+      - name: Build docs
+        run: poetry run mkdocs build --strict

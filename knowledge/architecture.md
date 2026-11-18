@@ -12,17 +12,23 @@ src/cornice_apispec/
 └── marshmallow.py     # MarshmallowPlugin and OneofOpenAPIConverter
 tests/
 └── test_marshmallow.py  # OneOfSchema component names, including v1/v3 collisions
+docs/                    # MkDocs pages (see knowledge/documentation.md)
+mkdocs.yml               # MkDocs Material + mkdocstrings config
+.github/workflows/
+├── tests.yml            # pytest, ruff, mkdocs build --strict
+├── publish.yml          # PyPI publish on v* tags
+└── docs.yml             # GitHub Pages deploy on v* tags or manual run
 .devcontainer/
 └── devcontainer.json    # Python 3.12 Poetry container
 ```
 
 ## Architectural Decision Records
 
-Index of `knowledge/adr/`. No records yet.
+Index of `knowledge/adr/`.
 
 ### Accepted
 
-None yet.
+- ADR-0001: [MkDocs documentation deployed to GitHub Pages on release tags](adr/0001-mkdocs-github-pages-on-release.md)
 
 ### Superseded
 
@@ -40,7 +46,7 @@ The library is a Pyramid add-on. `includeme` includes `pyramid_apispec.views`, r
 
 `OneofOpenAPIConverter` is the reason this fork exists. When two `OneOfSchema` members resolve to the same component name, it prefixes the name with `V{n}` from a `vN` segment in the schema's module path. `myapp.views.api.v3.schemas.PartSchema` becomes `V3PartSchema`. If the module has no `vN` segment, it uses the parent package name capitalized.
 
-Dependencies are managed with Poetry. Runtime Python is `^3.11`. Local development and the dev container use 3.12. Dev dependencies are pytest and ruff.
+Dependencies are managed with Poetry. Runtime Python is `^3.11`. Local development and the dev container use 3.12. Dev dependencies are pytest, ruff, mkdocs-material, and mkdocstrings. Ruff excludes the managed `.cursor/` and `.claude/` folders.
 
 ## Component Relationships
 

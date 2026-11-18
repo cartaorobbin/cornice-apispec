@@ -1,15 +1,29 @@
 import importlib
 import re
+from typing import Any
 
 from apispec import APISpec
 from apispec.exceptions import DuplicateComponentNameError
+from pyramid.config import Configurator
+from pyramid.request import Request
 
 from .generator import AutoDoc, get_schema_name
 from .marshmallow import MarshmallowPlugin
 from .predicates import register as predicates_register
 
 
-def includeme(config):
+def includeme(config: Configurator) -> None:
+    """Wire cornice-apispec into a Pyramid app.
+
+    Includes `pyramid_apispec.views`, registers the `pcm_*` view predicates, and adds
+    the `/{version}/openapi.json` route with its `/{version}/api-explorer` explorer.
+
+    The spec view imports `{root_package}.views.api.{version}.apispecview` and returns
+    its `api_spec(request)`. A missing module responds with 404.
+
+    Args:
+        config: The Pyramid configurator, passed by `config.include("cornice_apispec")`.
+    """
     config.include("pyramid_apispec.views")
 
     def spec_view(request):
@@ -48,7 +62,29 @@ def get_uri_placeholders(uri_pattern):
     return re.findall("{(.*?)}", uri_pattern)
 
 
-def get_spec(request, title, version, description=None, security_scheme=None):
+def get_spec(
+    request: Request,
+    title: str,
+    version: str,
+    description: str | None = None,
+    security_scheme: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Build the OpenAPI 3.0.2 document for the API version in the request URL.
+
+    Only views whose `pcm_show` equals the `{version}` path segment are included.
+
+    Args:
+        request: The current request. Its `version` matchdict value selects the views,
+            and its scheme and host become the server URL.
+        title: The `info.title` of the document.
+        version: The `info.version` of the document.
+        description: Optional `info.description`.
+        security_scheme: Optional mapping of scheme name to OpenAPI security scheme,
+            added to `components.securitySchemes`.
+
+    Returns:
+        The OpenAPI document as a dict, ready to render as JSON.
+    """
     spec = APISpec(
         title=title,
         version=version,
@@ -62,9 +98,7 @@ def get_spec(request, title, version, description=None, security_scheme=None):
         intro = InstropectedView(view)
         show_apispec = intro.pcm_show or ""
 
-        if not all(
-            (show_apispec == request.matchdict.get("version"), intro.request_methods)
-        ):
+        if not all((show_apispec == request.matchdict.get("version"), intro.request_methods)):
             continue
 
         # Check option before skip
