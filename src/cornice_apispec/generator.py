@@ -1,10 +1,24 @@
 import hashlib
 import inspect
+from typing import Any
+
+from cornice import Service
+from marshmallow import Schema
 
 DEFAULT_CONTENT_TYPE = "application/json"
 
 
-def get_schema_name(schema):
+def get_schema_name(schema: type[Schema] | Schema) -> str:
+    """Return the OpenAPI component name for a Marshmallow schema.
+
+    Args:
+        schema: A schema class or instance.
+
+    Returns:
+        The class name for a schema class. For an instance, the `__apispec__["model"]`
+        value when set, otherwise the class name, with a 5-character MD5 suffix when the
+        instance sets `exclude`.
+    """
     if inspect.isclass(schema):
         return schema.__name__
 
@@ -22,7 +36,20 @@ VALIDATOR_FOR_OPEN_API = {"querystring": "query", "headers": "header", "path": "
 
 
 class AutoDoc:
-    def __init__(self, method, introspectable_view, cornice_service):
+    """Build the OpenAPI operation for one view from its `pcm_*` metadata.
+
+    Args:
+        method: The HTTP method of the view, such as `"GET"`.
+        introspectable_view: The Pyramid introspectable of the view.
+        cornice_service: The Cornice service that owns the view's route.
+    """
+
+    def __init__(
+        self,
+        method: str,
+        introspectable_view: dict[str, Any],
+        cornice_service: Service,
+    ) -> None:
         self.method = method
         self.view = introspectable_view
         self.view_operations = {self.method.lower(): {}}
@@ -90,22 +117,16 @@ class AutoDoc:
             for status_code in self.response_schemas:
                 schema = self.response_schemas[status_code]
                 if isinstance(schema, str):  # is only text description
-                    status_code_dict = {
-                        status_code: {"description": schema, "content": {}}
-                    }
+                    status_code_dict = {status_code: {"description": schema, "content": {}}}
                 else:
                     schema_name = get_schema_name(schema)
                     if not inspect.isclass(schema) and schema.many:
                         schema_body = {
                             "type": "array",
-                            "items": {
-                                "$ref": f"#/components/schemas/{schema_name}"
-                            },
+                            "items": {"$ref": f"#/components/schemas/{schema_name}"},
                         }
                     else:
-                        schema_body = {
-                            "$ref": f"#/components/schemas/{schema_name}"
-                        }
+                        schema_body = {"$ref": f"#/components/schemas/{schema_name}"}
 
                     status_code_dict = {
                         status_code: {
@@ -118,14 +139,10 @@ class AutoDoc:
             self._add_responses(responses_dict)
 
     def _add_parameter(self, parameter_list):
-        found_parameter_list = self.view_operations[self.method.lower()].get(
-            "parameters", []
-        )
+        found_parameter_list = self.view_operations[self.method.lower()].get("parameters", [])
         for parameter in parameter_list:
             found_parameter_list.append(parameter)
-        self.view_operations[self.method.lower()].update(
-            {"parameters": found_parameter_list}
-        )
+        self.view_operations[self.method.lower()].update({"parameters": found_parameter_list})
 
     def _generate_parameters(self):
         def _observed_name(key):
@@ -141,9 +158,7 @@ class AutoDoc:
                         "name": _observed_name(key),
                         "in": VALIDATOR_FOR_OPEN_API.get(parameter_in, parameter_in),
                         "required": schema._declared_fields[key].required,
-                        "schema": self.get_type_from_field(
-                            schema._declared_fields[key]
-                        ),
+                        "schema": self.get_type_from_field(schema._declared_fields[key]),
                         "description": schema.__doc__ or "",
                     }
                     for key in schema._declared_fields
@@ -157,18 +172,14 @@ class AutoDoc:
             request_body_dict = {
                 "content": {
                     self.content_type: {
-                        "schema": {
-                            "$ref": f"#/components/schemas/{get_schema_name(body_schema)}"
-                        }
+                        "schema": {"$ref": f"#/components/schemas/{get_schema_name(body_schema)}"}
                     }
                 }
             }
             self._add_request_body(request_body_dict)
 
     def _add_request_body(self, request_body_dict):
-        self.view_operations[self.method.lower()].update(
-            {"requestBody": request_body_dict}
-        )
+        self.view_operations[self.method.lower()].update({"requestBody": request_body_dict})
 
     def _add_summary(self):
         if self.summary:
@@ -176,17 +187,14 @@ class AutoDoc:
 
     def _add_description(self):
         if self.description:
-            self.view_operations[self.method.lower()].update(
-                {"description": self.description}
-            )
+            self.view_operations[self.method.lower()].update({"description": self.description})
 
     def _add_security(self):
         if self.security:
-            self.view_operations[self.method.lower()].update(
-                {"security": [{self.security: []}]}
-            )
+            self.view_operations[self.method.lower()].update({"security": [{self.security: []}]})
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, dict[str, Any]]:
+        """Return the operation keyed by lowercase method, for `APISpec.path`."""
         self._add_tags()
         self._add_summary()
         self._add_description()

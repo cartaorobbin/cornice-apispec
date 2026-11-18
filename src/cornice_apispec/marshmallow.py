@@ -1,11 +1,19 @@
 import re
+from typing import Any
 
+from apispec import APISpec
 from apispec.ext import marshmallow
 from apispec.ext.marshmallow import common
 from marshmallow_oneofschema import OneOfSchema
 
 
 class OneofOpenAPIConverter(marshmallow.OpenAPIConverter):
+    """OpenAPI converter that renders `OneOfSchema` as `oneOf` with a discriminator.
+
+    Each member schema is registered as a component. When a member's component name is
+    already taken, the name is qualified from the member's module path: `V{N}` for a
+    `vN` segment, otherwise the capitalized parent package, otherwise `Alt`.
+    """
 
     @staticmethod
     def _qualify_name(schema_cls, base_name):
@@ -33,9 +41,7 @@ class OneofOpenAPIConverter(marshmallow.OpenAPIConverter):
 
                 # FIX: qualify name if it already exists (v3 vs v1 collision)
                 if component_name in self.spec.components.schemas:
-                    component_name = self._qualify_name(
-                        type(schema_instance), component_name
-                    )
+                    component_name = self._qualify_name(type(schema_instance), component_name)
 
                 self.spec.components.schema(component_name, schema=type_schema)
 
@@ -52,16 +58,23 @@ class OneofOpenAPIConverter(marshmallow.OpenAPIConverter):
         }
 
 
-def is_oneof(schema):
+def is_oneof(schema: Any) -> bool:
+    """Return whether `schema` is a `OneOfSchema` class or instance."""
     return (isinstance(schema, type) and issubclass(schema, OneOfSchema)) or isinstance(
         schema, OneOfSchema
     )
 
 
 class MarshmallowPlugin(marshmallow.MarshmallowPlugin):
+    """apispec Marshmallow plugin that uses `OneofOpenAPIConverter`.
+
+    Pass it to `APISpec(plugins=[MarshmallowPlugin()])` in place of apispec's own
+    `MarshmallowPlugin`.
+    """
+
     Converter = OneofOpenAPIConverter
 
-    def init_spec(self, spec):
+    def init_spec(self, spec: APISpec) -> None:
         super().init_spec(spec)
         self.spec = spec
         self.openapi_version = spec.openapi_version
