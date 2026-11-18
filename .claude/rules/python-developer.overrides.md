@@ -1,0 +1,13 @@
+---
+description: Project overrides for python-developer rule
+paths:
+  - "**/*.py"
+---
+
+# Python Developer Overrides
+
+This project formats and lints with Ruff at line length 100. Black is not a dependency.
+
+- Formatter: `poetry run ruff format .`
+- Linter: `poetry run ruff check .`
+- Do not run black.
